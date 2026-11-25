@@ -21,6 +21,7 @@ Some hardware frames still require standalone GPL programs—such as custom U-Bo
 | Path | Frame | License | Purpose |
 |---|---|---|---|
 | [`frames/aqara-s1-plus/uboot`](frames/aqara-s1-plus/uboot/README.md) | Aqara Panel Hub S1 Plus | `GPL-2.0-or-later` (packed TF-A BL31: `BSD-3-Clause`) | RAM-only U-Boot SPL and U-Boot with USB fastboot + `upload` for FEL bring-up and backup |
+| [`frames/lululemon-mirror/selinux-permissive`](frames/lululemon-mirror/selinux-permissive/README.md) | lululemon Studio Mirror | `GPL-2.0-only` | Single-boot, RAM-only kernel module that sets SELinux Permissive so an owner's authorized USB ADB can read `system`/`boot` read-only during a backup |
 
 ## Licenses
 

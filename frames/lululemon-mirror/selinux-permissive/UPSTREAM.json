@@ -1,0 +1,39 @@
+{
+  "component": "lululemon-mirror-selinux-permissive",
+  "frame": "lululemon-mirror",
+  "license": {
+    "selinux_permissive.ko": "GPL-2.0-only"
+  },
+  "docker_image": "ubuntu:24.04",
+  "toolchain": {
+    "compiler": "clang",
+    "major_version": "18",
+    "target": "aarch64-linux-gnu",
+    "cflags": [
+      "-c",
+      "-O2",
+      "-fno-pic",
+      "-fno-stack-protector",
+      "-fno-common",
+      "-ffreestanding",
+      "-fno-asynchronous-unwind-tables",
+      "-fno-unwind-tables",
+      "-fomit-frame-pointer",
+      "-nostdinc"
+    ]
+  },
+  "abi": {
+    "device": "lululemon Studio Mirror (MSM8916, arm64)",
+    "stock_build": "1.24.0",
+    "kernel": "3.10.49-perf-g4869d64961b",
+    "vermagic": "3.10.49-perf-g4869d64961b SMP preempt mod_unload modversions aarch64",
+    "module_layout_crc": "0xa5b7f7dd",
+    "kallsyms_lookup_name_crc": "0xe007de41",
+    "note": "Single-revision artifact: the published .ko only loads where module_layout matches stock 1.24.0 (0xa5b7f7dd). A new Mirror firmware revision needs its own build and tag."
+  },
+  "source": {
+    "name": "selinux_permissive",
+    "file": "selinux_permissive.c",
+    "origin": "Hand-rolled minimal kernel module written for Glassworks; no upstream repository. The module_layout and kallsyms_lookup_name CRCs are hardcoded from stock 1.24.0's pronto_wlan.ko, so the Corresponding Source is self-contained and needs no stock kernel tree."
+  }
+}
