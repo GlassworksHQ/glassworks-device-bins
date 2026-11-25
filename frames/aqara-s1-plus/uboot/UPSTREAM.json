@@ -1,0 +1,23 @@
+{
+  "component": "aqara-s1-plus-uboot",
+  "frame": "aqara-s1-plus",
+  "license": {
+    "u-boot.bin": "GPL-2.0-or-later",
+    "u-boot-sunxi-with-spl.bin": "GPL-2.0-or-later AND BSD-3-Clause"
+  },
+  "docker_image": "arm64v8/ubuntu:22.04",
+  "upstreams": {
+    "uboot": {
+      "name": "U-Boot",
+      "repo": "https://github.com/u-boot/u-boot.git",
+      "commit": "934995f642a21ca7f35fa9aed5f061394fcba243",
+      "license": "GPL-2.0-or-later"
+    },
+    "tfa": {
+      "name": "Trusted Firmware-A",
+      "repo": "https://github.com/ARM-software/arm-trusted-firmware.git",
+      "commit": "a413e1d7d38ed42dcdffc690d52a0cceb142a0e7",
+      "license": "BSD-3-Clause"
+    }
+  }
+}

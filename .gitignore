@@ -1,0 +1,6 @@
+out/
+dist/
+work/
+*.tar.xz
+*.bin
+.DS_Store
