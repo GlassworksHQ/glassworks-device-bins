@@ -70,12 +70,14 @@ jobs:
             exit 1
           fi
           # A pre-existing tag (without a release) must point at the exact commit we built,
-          # or the tag would identify different source than the uploaded module.
-          if EXISTING_SHA=$(git rev-parse -q --verify "refs/tags/$TAG^{commit}" 2>/dev/null); then
-            if [ "$EXISTING_SHA" != "$GITHUB_SHA" ]; then
-              echo "::error::Tag $TAG already exists at $EXISTING_SHA but this build is $GITHUB_SHA; refusing to mismatch tag and binaries."
-              exit 1
-            fi
+          # or the tag would identify different source than the uploaded module. The checkout is
+          # shallow and fetches no tags, and deleting a release leaves its tag behind, so query the
+          # remote and peel annotated tags to their commit rather than trusting the local refs.
+          REMOTE_REFS=$(git ls-remote --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}")
+          EXISTING_SHA=$(awk -v r="refs/tags/$TAG" '$2==(r"^{}"){p=$1} $2==r{d=$1} END{print (p ? p : d)}' <<< "$REMOTE_REFS")
+          if [ -n "$EXISTING_SHA" ] && [ "$EXISTING_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Tag $TAG already exists at $EXISTING_SHA but this build is $GITHUB_SHA; refusing to mismatch tag and binaries."
+            exit 1
           fi
           FLAGS=()
           if [ "$DRAFT" = "true" ]; then
