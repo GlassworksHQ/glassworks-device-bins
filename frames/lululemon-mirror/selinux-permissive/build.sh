@@ -65,6 +65,7 @@ CFLAGS="$(read_json toolchain.cflags)"
 DOCKER_IMAGE="$(read_json docker_image)"
 EXPECT_MODULE_LAYOUT="$(read_json abi.module_layout_crc)"
 EXPECT_KALLSYMS="$(read_json abi.kallsyms_lookup_name_crc)"
+EXPECT_VERMAGIC="$(read_json abi.vermagic)"
 KO_NAME="${MODULE_NAME}.ko"
 SOURCE_TAR="$OUT_DIR/${COMPONENT}-source.tar.xz"
 
@@ -74,7 +75,14 @@ STAGE="$WORK_DIR/source-stage/$STAGE_NAME"
 rm -rf "$WORK_DIR/source-stage"
 mkdir -p "$STAGE/LICENSES"
 cp "$HERE/$SOURCE_FILE" "$HERE/UPSTREAM.json" "$HERE/README.md" "$HERE/build.sh" "$STAGE/"
-cp "$REPO_ROOT/LICENSES/GPL-2.0-only.txt" "$STAGE/LICENSES/"
+# In a repo checkout the license lives at the repo root; in an extracted Corresponding
+# Source archive it sits next to this script. Prefer the archive-local copy so the
+# shipped source rebuilds as-is.
+if [ -f "$HERE/LICENSES/GPL-2.0-only.txt" ]; then
+  cp "$HERE/LICENSES/GPL-2.0-only.txt" "$STAGE/LICENSES/"
+else
+  cp "$REPO_ROOT/LICENSES/GPL-2.0-only.txt" "$STAGE/LICENSES/"
+fi
 
 TAR_BIN="tar"
 if command -v gtar >/dev/null 2>&1; then
@@ -125,11 +133,12 @@ else
 fi
 
 echo "==> Verifying the built module's ABI"
-python3 - "$OUT_DIR/$KO_NAME" "$EXPECT_MODULE_LAYOUT" "$EXPECT_KALLSYMS" <<'PY'
+python3 - "$OUT_DIR/$KO_NAME" "$EXPECT_MODULE_LAYOUT" "$EXPECT_KALLSYMS" "$EXPECT_VERMAGIC" <<'PY'
 import struct, sys
 ko = open(sys.argv[1], "rb").read()
 expect_ml = int(sys.argv[2], 16)
 expect_ks = int(sys.argv[3], 16)
+expect_vm = sys.argv[4]
 
 # ELF64 header sanity
 assert ko[:4] == b"\x7fELF" and ko[4] == 2 and ko[5] == 1, "not a 64-bit LE ELF"
@@ -166,7 +175,7 @@ off, size = sections[".modinfo"]
 modinfo = ko[off:off + size].split(b"\0")
 entries = {e.split(b"=", 1)[0].decode(): e.split(b"=", 1)[1].decode() for e in modinfo if b"=" in e}
 assert entries.get("license") == "GPL", f"license is {entries.get('license')!r}, must be GPL"
-assert entries.get("vermagic", "").endswith("aarch64"), "vermagic is not the aarch64 stock 1.24.0 magic"
+assert entries.get("vermagic") == expect_vm, f"vermagic {entries.get('vermagic')!r} != expected {expect_vm!r}"
 print(f"OK: ET_REL aarch64, module_layout={expect_ml:#x}, license=GPL, vermagic={entries['vermagic']!r}")
 PY
 

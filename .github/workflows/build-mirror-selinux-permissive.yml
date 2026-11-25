@@ -69,11 +69,20 @@ jobs:
             echo "::error::Release $TAG already exists; releases are immutable."
             exit 1
           fi
+          # A pre-existing tag (without a release) must point at the exact commit we built,
+          # or the tag would identify different source than the uploaded module.
+          if EXISTING_SHA=$(git rev-parse -q --verify "refs/tags/$TAG^{commit}" 2>/dev/null); then
+            if [ "$EXISTING_SHA" != "$GITHUB_SHA" ]; then
+              echo "::error::Tag $TAG already exists at $EXISTING_SHA but this build is $GITHUB_SHA; refusing to mismatch tag and binaries."
+              exit 1
+            fi
+          fi
           FLAGS=()
           if [ "$DRAFT" = "true" ]; then
             FLAGS+=(--draft)
           fi
           gh release create "$TAG" "${FLAGS[@]}" \
+            --target "$GITHUB_SHA" \
             --title "lululemon Mirror selinux_permissive ($TAG)" \
             --notes "Standalone single-boot read-only backup helper module for the lululemon Studio Mirror (stock 1.24.0, module_layout 0xa5b7f7dd), built from commit \`${GITHUB_SHA}\` with clang-18. Includes full Corresponding Source (\`lululemon-mirror-selinux-permissive-source.tar.xz\`), \`SHA256SUMS\`, and \`release-meta.json\`. Verify on a real Mirror before GlassworksHQ/glassworks pins this build's SHA-256." \
             dist/selinux_permissive.ko \
